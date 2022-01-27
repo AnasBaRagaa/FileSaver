@@ -1,0 +1,73 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}File Saver{% endblock %}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+  .float-container {
+    border: 3px solid #fff;
+    padding: 20px;
+}
+
+.float-child {
+    width: 50%;
+    float: left;
+    padding: 20px;
+    #border: 2px solid black;
+}
+  {% block style %}
+
+  {% endblock %}
+</style>
+<script type="text/javascript" src="{%   static  'jquery-3.6.0.js' %}">
+</script>
+{% block head_add %}
+{% endblock %}
+</head>
+<body>
+{%  block navbar %}
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+  <a class="navbar-brand" href="{% url 'saver_app:index' %}" ><h3>File Saver</h3></a>
+>
+  <ul class="navbar-nav">
+  {% if user.is_authenticated%}
+           <li class="nav-item">
+      <a class="nav-link" href=" {% url 'saver_app:index' %}">Welcome {{ user }}</a>
+    </li>
+     {% endif %}
+
+
+      {% if user.is_authenticated%}
+
+      <li class="nav-item">
+      <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+    </li>
+      {% else %}
+       <li class="nav-item">
+      <a class="nav-link" href="{% url 'login' %}">Login</a>
+    </li>
+      {% endif %}
+
+
+  </ul>
+</nav>
+    {% endblock %}
+{% block message %}
+    {% if messages %}
+     {% for message in messages %}
+         <div class="text-center alert alert-{{ message.tags }}">
+             {{ message|safe }}
+         </div>
+     {% endfor %}
+ {% endif %}
+{% endblock %}
+<div style="margin: 30px">{% block content %} {% endblock %}</div>
+{% block js %}
+
+{% endblock %}
+</body>
+</html>
