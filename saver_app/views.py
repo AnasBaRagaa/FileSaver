@@ -1,15 +1,21 @@
 import generics as generics
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
 from django.views import generic
 
 
 # Create your views here.
+from saver_app.forms import DataForm
+from saver_app.models import Data
+
+
 def index(request):
-    return HttpResponse("Index page")
+    return render(request,"saver_app/index.html")
 
 
 def register(request):
@@ -17,7 +23,10 @@ def register(request):
 
 
 def logout_user(request):
-    pass
+    logout(request)
+    messages.info(request, "User logged out")
+    return redirect('saver_app:index')
+
 
 
 def auth(request):
@@ -36,3 +45,22 @@ def auth(request):
             messages.error(request, 'Unsuccessful Login')
 
     return render(request, 'registration/login.html')
+
+
+class CreateData(LoginRequiredMixin, generic.CreateView):
+    success_message = "Data was added successfully."
+    template_name = 'saver_app/create.html'
+    success_url = reverse_lazy('saver_app:index')
+    form_class = DataForm
+    # send  current user to the form
+    def get_form_kwargs(self):
+        kwargs = super(CreateData, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
+    # save the current user as the owner of the created record
+    def form_valid(self, form):
+        user = self.request.user
+        form.instance.owner = user
+        messages.success(self.request, self.success_message)
+        return super(CreateData, self).form_valid(form)
