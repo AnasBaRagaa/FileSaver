@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
@@ -72,8 +72,33 @@ class IndexClass(LoginRequiredMixin, generic.ListView):
     def get_queryset(self, *args, **kwargs):
         qs = super(IndexClass, self).get_queryset(*args, **kwargs)
         qs = qs.filter(owner=self.request.user)
-        print('count =',qs.count)
+        print('count =', qs.count)
         return qs
 
     model = Data
     template_name = "saver_app/index.html"
+
+
+class DeleteView(LoginRequiredMixin, generic.DeleteView):
+    success_message = "Record was deleted successfully."
+    template_name = 'saver_app/delete.html'  # Generic template
+    model = Data
+    success_url = reverse_lazy("saver_app:index")
+    def get_object(self, queryset=None):
+        obj = super(DeleteView, self).get_object()
+        if obj.owner != self.request.user:
+            # prevent users from deleting records they do not own
+            raise Http404('You do not have permission to access this record')
+        return obj
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+
+        return super(DeleteView, self).delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        if self.request.GET.get('next', '') != '':
+            # redirect back to the next page if this request was redirected from another page and has a next parameter
+            self.request.session['data'] = self.request.POST
+            return self.request.GET.get('next', '')
+        return super(DeleteView, self).get_success_url()
