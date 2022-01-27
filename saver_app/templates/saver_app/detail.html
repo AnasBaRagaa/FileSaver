@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Operation{% endblock %}
+
+{% block content %}
+    <div>
+    <div style="margin: 20px" >
+    <h3 style="margin: 20px 0px; padding-bottom: 5px; background-color: black; color: aliceblue">Data</h3>
+<table class="table mytbl">
+    <colgroup>
+        <col style="width:10%">
+        <col style="width:90%">
+    </colgroup>
+    <tbody>
+
+      <tr>
+        <th scope="row">title</th>
+        <td>{{ object.title }}</td>
+      </tr>
+
+      <tr>
+          <th scope="row" >Description</th>
+        <td>{{ object.description}}</td>
+      </tr>
+
+    <tr>
+          <th scope="row" >Downlaod</th>
+        <td>
+           <a class="btn btn-info" href="{{ object.file.url }} " role="button" download="">Download</a>
+
+        </td>
+      </tr>
+
+
+
+
+    </tbody>
+    </table>
+
+</div>
+
+{% if not public %}
+
+      </div>
+        <div class="col text-right">
+            <a class="btn btn-primary" role="button" href="{% url 'saver_app:share' pk=object.id %}"> generate a public link</a>
+
+        </div>
+<div>
+            <table class="table">
+                <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Link</th>
+                    <th scope="col">Delete</th>
+
+                </tr>
+                </thead>
+                {% for l in object.sharinglink_set.all %}
+                    <tr>
+
+                        <td>{{ request.scheme }}://{{ request.get_host }}{% url 'saver_app:public' pk=l.id %}</td>
+
+
+                        <td>
+
+
+
+                            <a class="btn btn-danger" href="{% url 'saver_app:deleteLink' pk=l.id %}"
+                               role="button">Delete</a>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

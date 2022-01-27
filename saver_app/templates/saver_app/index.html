@@ -35,6 +35,9 @@
                         <td>
 
    <a class="btn btn-info" href="{{ f.file.url }} " role="button" download="">Download</a>
+
+                            <a class="btn btn-success" href="{% url 'saver_app:details' pk=f.id %}" role="button">Details</a>
+
                             <a class="btn btn-danger" href="{% url 'saver_app:delete' pk=f.id %}"
                                role="button">Delete</a>
 

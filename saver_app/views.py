@@ -10,7 +10,7 @@ from django.views import generic
 
 # Create your views here.
 from saver_app.forms import DataForm
-from saver_app.models import Data
+from saver_app.models import Data, SharingLink
 
 
 def index(request):
@@ -84,6 +84,7 @@ class DeleteView(LoginRequiredMixin, generic.DeleteView):
     template_name = 'saver_app/delete.html'  # Generic template
     model = Data
     success_url = reverse_lazy("saver_app:index")
+
     def get_object(self, queryset=None):
         obj = super(DeleteView, self).get_object()
         if obj.owner != self.request.user:
@@ -102,3 +103,57 @@ class DeleteView(LoginRequiredMixin, generic.DeleteView):
             self.request.session['data'] = self.request.POST
             return self.request.GET.get('next', '')
         return super(DeleteView, self).get_success_url()
+
+
+class DetailView(LoginRequiredMixin, generic.DeleteView):
+    context_object_name = "object"
+
+    def get_object(self, queryset=None):
+        obj = super(DetailView, self).get_object()
+        if obj.owner != self.request.user:
+            raise Http404(
+                'You do not have permission to access this record')  # prevent users from deleting records they do not own
+        return obj
+
+    model = Data
+    template_name = 'saver_app/detail.html'
+
+
+def create_sharing_link(request, pk):
+    link = SharingLink(data_id=pk)
+    link.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+def public_link(request, pk):
+
+    link = SharingLink.objects.filter(pk=pk)
+    if link.count() == 1:
+        return render(request, "saver_app/detail.html", {'object': link[0].data, 'public': True})
+    else:
+        raise Http404(
+            'You do not have permission to access this record or link does not exist')
+
+
+class DeleteLinkView(LoginRequiredMixin, generic.DeleteView):
+    success_message = "Record was deleted successfully."
+    template_name = 'saver_app/delete.html'  # Generic template
+    model = SharingLink
+
+    def get_object(self, queryset=None):
+        obj = super(DeleteLinkView, self).get_object()
+        if obj.data.owner != self.request.user:
+            # prevent users from deleting records they do not own
+            raise Http404('You do not have permission to access this record')
+        return obj
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+
+        return super(DeleteLinkView, self).delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy('saver_app:details', kwargs={'pk': self.get_object().data.id})
+
+
+
