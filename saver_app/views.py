@@ -66,19 +66,14 @@ class CreateData(LoginRequiredMixin, generic.CreateView):
         return super(CreateData, self).form_valid(form)
 
 
-def create_data_view(request):
-    if request.user is None or not request.user.is_authenticated:
-        messages.error(request,"No logged-in user")
-        return render(request, 'registration/login.html')
+class IndexClass(LoginRequiredMixin, generic.ListView):
+    context_object_name = 'objects'
 
-    if request.method == 'POST':
-        form = DataForm(request.POST, request.FILES)
-        #form['owner'].value = request.user
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Record added successfully")
-            return reverse_lazy('saver_app:index')
-        else:
-            messages.error(request, "Invalid form")
+    def get_queryset(self, *args, **kwargs):
+        qs = super(IndexClass, self).get_queryset(*args, **kwargs)
+        qs = qs.filter(owner=self.request.user)
+        print('count =',qs.count)
+        return qs
 
-    return render(request, 'saver_app/create.html', {'form': DataForm()})
+    model = Data
+    template_name = "saver_app/index.html"

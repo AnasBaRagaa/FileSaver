@@ -4,6 +4,6 @@ from saver_app import views
 
 app_name = "saver_app"
 urlpatterns = [
-    path('', views.index,name='index'),
+    path('', views.IndexClass.as_view(),name='index'),
     path('add',views.CreateData.as_view(),name='add')
 ]
