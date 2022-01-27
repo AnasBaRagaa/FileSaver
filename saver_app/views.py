@@ -8,14 +8,13 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
 
-
 # Create your views here.
 from saver_app.forms import DataForm
 from saver_app.models import Data
 
 
 def index(request):
-    return render(request,"saver_app/index.html")
+    return render(request, "saver_app/index.html")
 
 
 def register(request):
@@ -26,7 +25,6 @@ def logout_user(request):
     logout(request)
     messages.info(request, "User logged out")
     return redirect('saver_app:index')
-
 
 
 def auth(request):
@@ -52,9 +50,11 @@ class CreateData(LoginRequiredMixin, generic.CreateView):
     template_name = 'saver_app/create.html'
     success_url = reverse_lazy('saver_app:index')
     form_class = DataForm
+
     # send  current user to the form
     def get_form_kwargs(self):
         kwargs = super(CreateData, self).get_form_kwargs()
+        print("user ", self.request.user.email)
         kwargs.update({'user': self.request.user})
         return kwargs
 
@@ -64,3 +64,21 @@ class CreateData(LoginRequiredMixin, generic.CreateView):
         form.instance.owner = user
         messages.success(self.request, self.success_message)
         return super(CreateData, self).form_valid(form)
+
+
+def create_data_view(request):
+    if request.user is None or not request.user.is_authenticated:
+        messages.error(request,"No logged-in user")
+        return render(request, 'registration/login.html')
+
+    if request.method == 'POST':
+        form = DataForm(request.POST, request.FILES)
+        #form['owner'].value = request.user
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Record added successfully")
+            return reverse_lazy('saver_app:index')
+        else:
+            messages.error(request, "Invalid form")
+
+    return render(request, 'saver_app/create.html', {'form': DataForm()})

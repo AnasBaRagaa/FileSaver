@@ -6,7 +6,7 @@
 <div class="container">
 <h3> {{ title }}</h3>
 
-<form method="post">{% csrf_token %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
     {{ form}}
     <input type="submit"  class="btn btn-primary" value="Save">
 </form>
